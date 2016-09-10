@@ -9,11 +9,13 @@ import (
 )
 
 func main() {
-	partToBump := flag.Int("dot", 0, "how many dots")
-	leftToRight := flag.Bool("ltr", false, "Left to right")
+	params := bump.BumpParams{}
+	flag.IntVar(&params.Part, "dot", 0, "how many dots")
+	flag.BoolVar(&params.LeftToRight, "ltr", false, "Left to right")
 	flag.Parse()
 	v := flag.Arg(0)
-	vNew, err := bump.Bump(v, *partToBump, *leftToRight)
+	params.V = v
+	vNew, err := bump.Bump(params)
 	if err != nil {
 		fmt.Println(err.Error())
 		os.Exit(1)
