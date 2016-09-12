@@ -9,15 +9,24 @@ import (
 
 var errInvalidPartNum = errors.New("version 'part' number invalid")
 var errNonNumeric = errors.New("version contains a non-numeric component")
+var errNoVersionSupplied = errors.New("empty version string")
 
 type BumpParams struct {
 	V           string
 	Part        int
 	LeftToRight bool
+	Delimiter   string
 }
 
 func Bump(params BumpParams) (string, error) {
-	vparts := strings.Split(params.V, ".")
+	v := strings.TrimSpace(params.V)
+	if v == "" {
+		return "", errNoVersionSupplied
+	}
+	if params.Delimiter == "" {
+		params.Delimiter = "."
+	}
+	vparts := strings.Split(v, params.Delimiter)
 	if params.Part < 0 {
 		return "", errInvalidPartNum
 	}
@@ -55,16 +64,8 @@ func Bump(params BumpParams) (string, error) {
 	thisPartInt += 1
 	vparts[index] = thisPartPrefix + strconv.Itoa(thisPartInt)
 	for i, _ := range vparts[index+1:] {
-		/*
-			_, err := strconv.Atoi(p)
-			if err != nil {
-				break
-			} else {
-				//reset smaller parts to 0
-			}
-		*/
 		vparts[i+index+1] = "0"
 	}
-	vNew := strings.Join(vparts, ".")
+	vNew := strings.Join(vparts, params.Delimiter)
 	return vNew, nil
 }
