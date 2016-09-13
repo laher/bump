@@ -7,17 +7,17 @@ var bumptests = []struct {
 	out    string
 	err    error
 }{
-	{BumpParams{"1", 0, false}, "2", nil},
-	{BumpParams{"1.1", 0, false}, "1.2", nil},
-	{BumpParams{"1.1.1", 0, false}, "1.1.2", nil},
-	{BumpParams{"1.1.1", 2, true}, "1.1.2", nil},
-	{BumpParams{"1.1.1", 1, false}, "1.2.0", nil},
-	{BumpParams{"1.1.1", 2, false}, "2.0.0", nil},
-	{BumpParams{"1.1.1-xxx", 0, false}, "1.1.2", nil},
-	{BumpParams{"1.1.xxx-1", 0, false}, "1.1.xxx-2", nil},
-	{BumpParams{"1.1.xxx-", 0, false}, "", errNonNumeric},
-	{BumpParams{"1", 1, false}, "", errInvalidPartNum},
-	{BumpParams{"1", -1, false}, "", errInvalidPartNum},
+	{BumpParams{V: "1", Part: 0}, "2", nil},
+	{BumpParams{V: "1.1", Part: 0}, "1.2", nil},
+	{BumpParams{V: "1.1.1", Part: 0}, "1.1.2", nil},
+	{BumpParams{V: "1.1.1", Part: 2, LeftToRight: true}, "1.1.2", nil},
+	{BumpParams{V: "1.1.1", Part: 1}, "1.2.0", nil},
+	{BumpParams{V: "1.1.1", Part: 2}, "2.0.0", nil},
+	{BumpParams{V: "1.1.1-xxx", Part: 0}, "1.1.2", nil},
+	{BumpParams{V: "1.1.xxx-1", Part: 0}, "1.1.xxx-2", nil},
+	{BumpParams{V: "1.1.xxx-", Part: 0}, "", errNonNumeric},
+	{BumpParams{V: "1", Part: 1}, "", errInvalidPartNum},
+	{BumpParams{V: "1", Part: -1}, "", errInvalidPartNum},
 }
 
 func TestBump(t *testing.T) {
