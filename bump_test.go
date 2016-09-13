@@ -18,6 +18,7 @@ var bumptests = []struct {
 	{BumpParams{V: "1.1.xxx-", Part: 0}, "", errNonNumeric},
 	{BumpParams{V: "1", Part: 1}, "", errInvalidPartNum},
 	{BumpParams{V: "1", Part: -1}, "", errInvalidPartNum},
+	{BumpParams{V: ""}, "", errNoVersionSupplied},
 }
 
 func TestBump(t *testing.T) {
