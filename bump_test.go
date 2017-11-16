@@ -13,6 +13,7 @@ var bumptests = []struct {
 	{BumpParams{V: "1.1.1", Part: 2, LeftToRight: true}, "1.1.2", nil},
 	{BumpParams{V: "1.1.1", Part: 1}, "1.2.0", nil},
 	{BumpParams{V: "1.1.1", Part: 2}, "2.0.0", nil},
+	{BumpParams{Prefix: "app-v", V: "app-v1.1.1", Part: 2}, "app-v2.0.0", nil},
 	{BumpParams{V: "1.1.1-xxx", Part: 0}, "1.1.2", nil},
 	{BumpParams{V: "1.1.xxx-1", Part: 0}, "1.1.xxx-2", nil},
 	{BumpParams{V: "1.1.xxx-", Part: 0}, "", errNonNumeric},
@@ -23,7 +24,7 @@ var bumptests = []struct {
 
 func TestBump(t *testing.T) {
 	for _, bt := range bumptests {
-		t.Logf("table driven test: %+v", bt)
+		t.Logf("Input: %+v", bt.Params)
 		out, err := Bump(bt.Params)
 		if err != bt.err {
 			t.Errorf("Fail: expected: %v, actual: %v", bt.err, err)

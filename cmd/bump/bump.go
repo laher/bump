@@ -15,9 +15,9 @@ func main() {
 	flag.IntVar(&params.Part, "part", 0, "which part (zero-indexed) of the version to bump")
 	flag.BoolVar(&params.LeftToRight, "ltr", false, "Read parts left-to-right (default is right-to-left)")
 	flag.StringVar(&params.Delimiter, "delimiter", ".", "Delimiter (default is .)")
+	flag.StringVar(&params.Prefix, "prefix", ".", "Prefix")
 	flag.BoolVar(&isStdin, "stdin", false, "Use standard input")
 	flag.Parse()
-	v := flag.Arg(0)
 	if isStdin {
 		stdin := bufio.NewReader(os.Stdin)
 		line, err := stdin.ReadString('\n')
@@ -27,6 +27,7 @@ func main() {
 		}
 		params.V = line
 	} else {
+		v := flag.Arg(0)
 		params.V = v
 	}
 	vNew, err := bump.Bump(params)

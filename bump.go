@@ -16,6 +16,7 @@ type BumpParams struct {
 	Part        int
 	LeftToRight bool
 	Delimiter   string
+	Prefix      string
 }
 
 func Bump(params BumpParams) (string, error) {
@@ -25,6 +26,9 @@ func Bump(params BumpParams) (string, error) {
 	}
 	if params.Delimiter == "" {
 		params.Delimiter = "."
+	}
+	if strings.HasPrefix(v, params.Prefix) {
+		v = v[len(params.Prefix):]
 	}
 	vparts := strings.Split(v, params.Delimiter)
 	if params.Part < 0 {
@@ -67,5 +71,5 @@ func Bump(params BumpParams) (string, error) {
 		vparts[i+index+1] = "0"
 	}
 	vNew := strings.Join(vparts, params.Delimiter)
-	return vNew, nil
+	return params.Prefix + vNew, nil
 }
