@@ -14,7 +14,7 @@ Bump a given version up to the next number.
 ## Installation
 
 	**install go, including 'set GOPATH'**
-	go install github.com/laher/bump/...
+	go install github.com/laher/bump
 
 ## Usage
 
@@ -29,23 +29,32 @@ Bump a given version up to the next number.
 	$ bump -part=1 v1.0.1-prerelease
  	v1.1.0
 
-	$ bump -part=0 -ltr 1.0.1-prerelease
+	$ bump -part=0 1.0.1-prerelease
  	2.0.0
 
-### e.g. Work with external apps, e.g. git tags
-
-	$ git describe --tags --abbrev=0
-	v-1.2.3
-	$ bump `git describe --tags --abbrev=0`
-	v-1.2.4
 
 ### e.g. Use pipes
 
 	$ cat version.txt
 	1.2.2
-	$ cat version.txt | bump -stdin
+	$ cat version.txt | bump 
 	1.2.3
-	$ cat version.txt | bump -stdin > version.txt
+	$ cat version.txt | bump > version.txt
+
+### e.g. Work with external apps, e.g. git tags
+
+	$ git describe --tags --abbrev=0
+	v1.2.3
+	$ bump -prefix=v `git describe --tags --abbrev=0`
+	v1.2.4
+
+  $ git tag
+  v1.3.4
+  v1.3.6
+  other-tag
+  $ git tag|bump -prefix=v
+  v1.3.7
+
 
 ### e.g. Alternative delimiter
 	
