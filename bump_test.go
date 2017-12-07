@@ -25,7 +25,11 @@ var bumptests = []struct {
 func TestBump(t *testing.T) {
 	for _, bt := range bumptests {
 		t.Logf("Input: %+v", bt.Params)
-		out, err := Bump(bt.Params)
+		v, err := ToVersion(bt.Params.V, bt.Params)
+		if err != bt.err {
+			t.Errorf("Fail: expected: %v, actual: %v", bt.err, err)
+		}
+		out, err := Bump(v, bt.Params)
 		if err != bt.err {
 			t.Errorf("Fail: expected: %v, actual: %v", bt.err, err)
 		}

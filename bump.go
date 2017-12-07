@@ -17,24 +17,56 @@ type BumpParams struct {
 	LeftToRight bool
 	Delimiter   string
 	Prefix      string
+	Amount      int
+	Sort        string
 }
 
-func Bump(params BumpParams) (string, error) {
-	v := strings.TrimSpace(params.V)
-	if v == "" {
-		return "", errNoVersionSupplied
+func ToVersion(versionString string, params BumpParams) (Version, error) {
+
+	v := Version{}
+	r, err := regexp.Compile("^([^0-9]*)([\\d]+)")
+	if err != nil {
+		return v, err
 	}
-	if params.Delimiter == "" {
-		params.Delimiter = "."
+	if strings.HasPrefix(versionString, params.Prefix) {
+		versionString = versionString[len(params.Prefix):]
 	}
-	if strings.HasPrefix(v, params.Prefix) {
-		v = v[len(params.Prefix):]
+	vparts := strings.Split(versionString, params.Delimiter)
+	//fmt.Printf("parts: %v\n", vparts)
+	for _, p := range vparts {
+		subMatches := r.FindAllStringSubmatch(p, -1)
+		//fmt.Printf("subMatches: %v\n", subMatches)
+		if subMatches == nil {
+			return v, errNonNumeric
+		}
+		sm0 := subMatches[0]
+		thisPartPrefix := sm0[1]
+		thisPartNumeric := sm0[2]
+		thisPartSuffix := ""
+		if len(sm0) > 3 {
+			thisPartSuffix = sm0[3]
+		}
+		if len(thisPartNumeric) < 1 {
+			return v, errNonNumeric
+		}
+		thisPartInt, err := strconv.Atoi(thisPartNumeric)
+		if err != nil {
+			return v, err
+		}
+
+		v.parts = append(v.parts, part{prefix: thisPartPrefix, val: thisPartInt, suffix: thisPartSuffix})
 	}
-	vparts := strings.Split(v, params.Delimiter)
+
+	return v, nil
+}
+
+func Bump(version Version, params BumpParams) (string, error) {
+
+	//vparts := strings.Split(v, params.Delimiter)
 	if params.Part < 0 {
 		return "", errInvalidPartNum
 	}
-	max := len(vparts) - 1
+	max := len(version.parts) - 1
 	if params.Part > max {
 		return "", errInvalidPartNum
 	}
@@ -42,34 +74,7 @@ func Bump(params BumpParams) (string, error) {
 	if !params.LeftToRight {
 		index = max - params.Part
 	}
-	thisPart := vparts[index]
-	r, err := regexp.Compile("^([^0-9]*)([\\d+])(.*)")
-	if err != nil {
-		return "", err
-	}
-	thisPartPrefix := ""
-	thisPartInt, err := strconv.Atoi(thisPart)
-	if err != nil {
-		subMatches := r.FindAllStringSubmatch(thisPart, -1)
-		if subMatches == nil {
-			return "", errNonNumeric
-		}
-		sm0 := subMatches[0]
-		thisPartNumeric := sm0[2]
-		if len(thisPartNumeric) < 1 {
-			return "", errNonNumeric
-		}
-		thisPartInt, err = strconv.Atoi(thisPartNumeric)
-		if err != nil {
-			return "", err
-		}
-		thisPartPrefix = sm0[1]
-	}
-	thisPartInt += 1
-	vparts[index] = thisPartPrefix + strconv.Itoa(thisPartInt)
-	for i, _ := range vparts[index+1:] {
-		vparts[i+index+1] = "0"
-	}
-	vNew := strings.Join(vparts, params.Delimiter)
-	return params.Prefix + vNew, nil
+	thisPart := version.parts[index]
+	thisPart.val += params.Amount
+	return version.ToString(params), nil
 }
