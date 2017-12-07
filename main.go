@@ -8,12 +8,10 @@ import (
 	"os"
 	"sort"
 	"strings"
-
-	"github.com/laher/bump"
 )
 
 func main() {
-	params := bump.BumpParams{}
+	params := BumpParams{}
 	isStdin := false
 	head := 1
 	flag.IntVar(&params.Part, "part", 0, "which part (zero-indexed) of the version to bump")
@@ -29,7 +27,7 @@ func main() {
 		params.Delimiter = "."
 	}
 	if isStdin {
-		rsorted := []bump.Version{}
+		rsorted := []Version{}
 		stdin := bufio.NewReader(os.Stdin)
 		for {
 			line, err := stdin.ReadString('\n')
@@ -40,7 +38,7 @@ func main() {
 				}
 				break
 			}
-			v, err := bump.ToVersion(strings.TrimSpace(line), params)
+			v, err := ToVersion(strings.TrimSpace(line), params)
 			if err != nil {
 				fmt.Println(err.Error())
 				os.Exit(1)
@@ -48,12 +46,12 @@ func main() {
 			rsorted = append(rsorted, v)
 		}
 		if params.Sort == "asc" {
-			sort.Sort(bump.Sorted(rsorted))
+			sort.Sort(Sorted(rsorted))
 		} else {
-			sort.Sort(bump.RSorted(rsorted))
+			sort.Sort(RSorted(rsorted))
 		}
 		for i, version := range rsorted {
-			vNew, err := bump.Bump(version, params)
+			vNew, err := Bump(version, params)
 			if err != nil {
 				fmt.Println(err.Error())
 				os.Exit(1)
@@ -65,16 +63,16 @@ func main() {
 	} else {
 		v := strings.TrimSpace(flag.Arg(0))
 		if v == "" {
-			//return "", bump.ErrNoVersionSupplied
+			//return "", ErrNoVersionSupplied
 			fmt.Println("No version supplied")
 			os.Exit(1)
 		}
-		version, err := bump.ToVersion(v, params)
+		version, err := ToVersion(v, params)
 		if err != nil {
 			fmt.Println(err.Error())
 			os.Exit(1)
 		}
-		vNew, err := bump.Bump(version, params)
+		vNew, err := Bump(version, params)
 		if err != nil {
 			fmt.Println(err.Error())
 			os.Exit(1)

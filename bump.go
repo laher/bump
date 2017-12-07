@@ -1,4 +1,4 @@
-package bump
+package main
 
 import (
 	"errors"
@@ -61,7 +61,6 @@ func ToVersion(versionString string, params BumpParams) (Version, error) {
 }
 
 func Bump(version Version, params BumpParams) (string, error) {
-
 	//vparts := strings.Split(v, params.Delimiter)
 	if params.Part < 0 {
 		return "", errInvalidPartNum
@@ -74,7 +73,6 @@ func Bump(version Version, params BumpParams) (string, error) {
 	if !params.LeftToRight {
 		index = max - params.Part
 	}
-	thisPart := version.parts[index]
-	thisPart.val += params.Amount
+	version.parts[index].val += params.Amount
 	return version.ToString(params), nil
 }
