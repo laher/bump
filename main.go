@@ -26,6 +26,15 @@ func main() {
 	if params.Delimiter == "" {
 		params.Delimiter = "."
 	}
+	switch params.Sort {
+	case "asc":
+	case "desc":
+	case "":
+		params.Sort = "desc"
+	default:
+		fmt.Println("Invalid flag for sort. Should be asc or desc")
+		os.Exit(1)
+	}
 	if isStdin {
 		rsorted := []Version{}
 		stdin := bufio.NewReader(os.Stdin)
