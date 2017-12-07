@@ -8,27 +8,37 @@ import (
 )
 
 var errInvalidPartNum = errors.New("version 'part' number invalid")
-var errNonNumeric = errors.New("version contains a non-numeric component")
+var errNonNumeric = errors.New("version contains a non-numeric part")
 var errNoVersionSupplied = errors.New("empty version string")
+var errNoPrefix = errors.New("Prefix not present")
 
-type BumpParams struct {
-	V           string
+type bumpParams struct {
 	Part        int
 	LeftToRight bool
 	Delimiter   string
 	Prefix      string
-	Amount      int
+	Inc         int
 	Sort        string
 }
 
-func ToVersion(versionString string, params BumpParams) (Version, error) {
-
+func toVersion(versionString string, params *bumpParams) (Version, error) {
 	v := Version{}
-	r, err := regexp.Compile("^([^0-9]*)([\\d]+)")
+	versionString = strings.TrimSpace(versionString)
+	if versionString == "" {
+		return v, errNoVersionSupplied
+	}
+	if params.Delimiter == "" {
+		params.Delimiter = "."
+	}
+	r, err := regexp.Compile("^([^0-9]*)([\\d]+)(.*)")
 	if err != nil {
 		return v, err
 	}
-	if strings.HasPrefix(versionString, params.Prefix) {
+
+	if params.Prefix != "" {
+		if !strings.HasPrefix(versionString, params.Prefix) {
+			return v, errNoPrefix
+		}
 		versionString = versionString[len(params.Prefix):]
 	}
 	vparts := strings.Split(versionString, params.Delimiter)
@@ -37,7 +47,11 @@ func ToVersion(versionString string, params BumpParams) (Version, error) {
 		subMatches := r.FindAllStringSubmatch(p, -1)
 		//fmt.Printf("subMatches: %v\n", subMatches)
 		if subMatches == nil {
-			return v, errNonNumeric
+			if params.Prefix == "" {
+				return v, errNonNumeric
+			}
+			//prefix suggests we should stretch
+			continue
 		}
 		sm0 := subMatches[0]
 		thisPartPrefix := sm0[1]
@@ -60,7 +74,7 @@ func ToVersion(versionString string, params BumpParams) (Version, error) {
 	return v, nil
 }
 
-func Bump(version Version, params BumpParams) (string, error) {
+func bump(version Version, params bumpParams) (string, error) {
 	//vparts := strings.Split(v, params.Delimiter)
 	if params.Part < 0 {
 		return "", errInvalidPartNum
@@ -73,6 +87,15 @@ func Bump(version Version, params BumpParams) (string, error) {
 	if !params.LeftToRight {
 		index = max - params.Part
 	}
-	version.parts[index].val += params.Amount
+	for i := range version.parts {
+		if i == index {
+			version.parts[i].val += params.Inc
+			version.parts[i].suffix = ""
+		} else if (params.LeftToRight && i < index) || (!params.LeftToRight && i > index) {
+			version.parts[i].val = 0
+			version.parts[i].suffix = ""
+			version.parts[i].prefix = ""
+		}
+	}
 	return version.ToString(params), nil
 }

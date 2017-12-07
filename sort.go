@@ -21,7 +21,7 @@ func (p part) String() string {
 }
 
 // ToString renders a version based on its params
-func (v Version) ToString(params BumpParams) string {
+func (v Version) ToString(params bumpParams) string {
 	vs := make([]string, len(v.parts))
 	for i, p := range v.parts {
 		vs[i] = p.String()

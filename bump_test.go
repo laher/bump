@@ -3,38 +3,45 @@ package main
 import "testing"
 
 var bumptests = []struct {
-	Params BumpParams
+	V      string
+	Params bumpParams
 	out    string
 	err    error
 }{
-	{BumpParams{V: "1", Part: 0}, "2", nil},
-	{BumpParams{V: "1.1", Part: 0}, "1.2", nil},
-	{BumpParams{V: "1.1.1", Part: 0}, "1.1.2", nil},
-	{BumpParams{V: "1.1.1", Part: 2, LeftToRight: true}, "1.1.2", nil},
-	{BumpParams{V: "1.1.1", Part: 1}, "1.2.0", nil},
-	{BumpParams{V: "1.1.1", Part: 2}, "2.0.0", nil},
-	{BumpParams{Prefix: "app-v", V: "app-v1.1.1", Part: 2}, "app-v2.0.0", nil},
-	{BumpParams{V: "1.1.1-xxx", Part: 0}, "1.1.2", nil},
-	{BumpParams{V: "1.1.xxx-1", Part: 0}, "1.1.xxx-2", nil},
-	{BumpParams{V: "1.1.xxx-", Part: 0}, "", errNonNumeric},
-	{BumpParams{V: "1", Part: 1}, "", errInvalidPartNum},
-	{BumpParams{V: "1", Part: -1}, "", errInvalidPartNum},
-	{BumpParams{V: ""}, "", errNoVersionSupplied},
+	{"1", bumpParams{Part: 0, Inc: 1}, "2", nil},
+	{"1.1", bumpParams{Part: 0, Inc: 1}, "1.2", nil},
+	{"1.1.1", bumpParams{Part: 0, Inc: 1}, "1.1.2", nil},
+	{"1.1.1", bumpParams{Part: 2, Inc: 1, LeftToRight: true}, "0.0.2", nil},
+	{"1.1.1", bumpParams{Part: 1, Inc: 1}, "1.2.0", nil},
+	{"1.1.1", bumpParams{Part: 2, Inc: 1}, "2.0.0", nil},
+	{"app-v1.1.1", bumpParams{Prefix: "app-v", Part: 2, Inc: 1}, "app-v2.0.0", nil},
+	{"1.1.1-xxx", bumpParams{Part: 0, Inc: 1}, "1.1.2", nil},
+	{"1.1.xxx-1", bumpParams{Part: 0, Inc: 1}, "1.1.xxx-2", nil},
+	{"1.1.xxx-", bumpParams{Part: 0, Inc: 1}, "", errNonNumeric},
+	{"1", bumpParams{Part: 1, Inc: 1}, "", errInvalidPartNum},
+	{"1", bumpParams{Part: -1, Inc: 1}, "", errInvalidPartNum},
+	{"", bumpParams{}, "", errNoVersionSupplied},
 }
 
 func TestBump(t *testing.T) {
 	for _, bt := range bumptests {
-		t.Logf("Input: %+v", bt.Params)
-		v, err := ToVersion(bt.Params.V, bt.Params)
-		if err != bt.err {
-			t.Errorf("Fail: expected: %v, actual: %v", bt.err, err)
-		}
-		out, err := Bump(v, bt.Params)
-		if err != bt.err {
-			t.Errorf("Fail: expected: %v, actual: %v", bt.err, err)
-		}
-		if out != bt.out {
-			t.Errorf("Fail: expected: %s, actual: %s", bt.out, out)
-		}
+		t.Run(bt.V, func(t *testing.T) {
+			t.Logf("Input: %+v", bt)
+			v, err := toVersion(bt.V, &bt.Params)
+			if err != nil {
+				if err == bt.err {
+					//done.
+					return
+				}
+				t.Errorf("Fail: expected: %v, actual: %v", bt.err, err)
+			}
+			out, err := bump(v, bt.Params)
+			if err != bt.err {
+				t.Errorf("Fail: expected: %v, actual: %v", bt.err, err)
+			}
+			if out != bt.out {
+				t.Errorf("Fail: expected: %s, actual: %s", bt.out, out)
+			}
+		})
 	}
 }
